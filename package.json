@@ -1,0 +1,48 @@
+{
+  "name": "dual-agent-desktop",
+  "version": "1.0.0",
+  "description": "Centro de control de escritorio que coordina Claude Code (desarrollador) y OpenCode (QA) sobre un mismo proyecto.",
+  "main": "dist-electron/electron/main/main.js",
+  "scripts": {
+    "dev": "npm run build:electron && node scripts/dev.cjs",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:renderer": "vite build",
+    "build": "npm run typecheck && npm run build:electron && npm run build:renderer",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "start": "npm run build && electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:real": "node scripts/test-real.cjs",
+    "dist": "npm run build && electron-builder --win nsis",
+    "pack": "npm run build && electron-builder --win dir"
+  },
+  "author": "RonnyGG",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "autoprefixer": "^10.6.1",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3",
+    "jsdom": "^30.1.3",
+    "lucide-react": "^1.61.0",
+    "postcss": "^8.5.31",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  },
+  "productName": "Dual Agent Desktop",
+  "private": true
+}

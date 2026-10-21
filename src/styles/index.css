@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --led-gray: #4b4f59;
+  --led-yellow: #f5c542;
+  --led-green: #3ddc84;
+  --led-red: #ff5a5f;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-coal-900 text-ink-100 font-sans antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+::selection {
+  background: rgba(90, 169, 230, 0.35);
+}
+
+/* Barras de desplazamiento discretas */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #383b43 transparent;
+}
+
+.panel {
+  @apply rounded-2xl border border-white/[0.06] bg-coal-850;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px -16px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Focos LED ─────────────────────────────────────────── */
+.led {
+  --c: var(--led-gray);
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 30%, white) 0%, var(--c) 45%, color-mix(in srgb, var(--c) 55%, black) 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.02);
+  transition: background 400ms ease, box-shadow 400ms ease;
+}
+.led[data-state='pending'] {
+  --c: var(--led-gray);
+  opacity: 0.55;
+}
+.led[data-state='active'] {
+  --c: var(--led-yellow);
+  animation: led-breathe 1.8s ease-in-out infinite;
+}
+.led[data-state='done'] {
+  --c: var(--led-green);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 14px 2px color-mix(in srgb, var(--c) 45%, transparent);
+}
+.led[data-state='error'] {
+  --c: var(--led-red);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 16px 3px color-mix(in srgb, var(--c) 50%, transparent);
+}
+
+@keyframes led-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 8px 1px color-mix(in srgb, var(--c) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 20px 5px color-mix(in srgb, var(--c) 55%, transparent);
+  }
+}
+
+/* Indicador de estado del agente */
+.status-dot[data-status='working'] {
+  animation: dot-pulse 1.4s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.fade-in {
+  animation: fade-in 220ms ease-out both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .led,
+  .status-dot,
+  .fade-in {
+    animation: none !important;
+    transition: none !important;
+  }
+}

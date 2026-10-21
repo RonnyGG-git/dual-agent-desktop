@@ -1,0 +1,38 @@
+appId: com.ronnygg.dualagentdesktop
+productName: Dual Agent Desktop
+copyright: RonnyGG
+
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - package.json
+  - dist/**/*
+  - dist-electron/**/*
+  - electron/security/guard-hook.cjs
+  - resources/icon.png
+  - "!**/*.map"
+
+# Claude Code ejecuta el hook guardián como un archivo real: no puede vivir dentro del .asar.
+asarUnpack:
+  - electron/security/guard-hook.cjs
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: resources/icon.png
+  executableName: DualAgentDesktop
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: Dual Agent Desktop
+  runAfterFinish: true
+  # Los datos de usuario (%LOCALAPPDATA%\DualAgentDesktop) se conservan al desinstalar.
+  deleteAppDataOnUninstall: false
+  artifactName: DualAgentDesktop-Setup-${version}.${ext}
