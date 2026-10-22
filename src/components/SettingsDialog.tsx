@@ -47,7 +47,7 @@ export function SettingsDialog({ settings, busy, onClose }: { settings: Settings
         </header>
         <div className="space-y-3">
           <p className="text-ink-400">
-            Directorio de trabajo fijo: <code className="text-ink-100">{s.workspace}</code>
+            Carpeta de trabajo: <code className="text-ink-100">{s.workspace}</code> (se cambia desde la ruta del encabezado)
           </p>
           <label className="flex items-center justify-between gap-3">
             <span className="text-ink-300">Máximo de intentos de corrección</span>
@@ -73,7 +73,7 @@ export function SettingsDialog({ settings, busy, onClose }: { settings: Settings
             <input value={s.opencodeModel} placeholder="predeterminado" onChange={(e) => setS({ ...s, opencodeModel: e.target.value })} className="w-44 rounded-lg bg-coal-950 px-2 py-1 font-mono ring-1 ring-white/[0.08] outline-none focus:ring-white/20" />
           </label>
           <label className="block">
-            <span className="text-ink-300">Rutas extra donde Claude puede escribir (relativas, una por línea)</span>
+            <span className="text-ink-300">Rutas extra donde Claude puede escribir (relativas a la carpeta de trabajo, una por línea; se ignoran si no existen)</span>
             <textarea
               rows={2}
               value={s.extraWritablePaths.join('\n')}

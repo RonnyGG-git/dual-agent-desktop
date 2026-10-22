@@ -178,6 +178,15 @@ describe('Persistencia', () => {
     expect(new HistoryStore().recoverInterrupted()).toBe(1);
     expect(new HistoryStore().get('abc')?.status).toBe('cancelled');
   });
+  it('la carpeta de trabajo es siempre absoluta y los recientes no se repiten', () => {
+    const store = new ConfigStore();
+    expect(store.update({ workspace: 'relativa' }).workspace).toBe('C:\\RONNY\\MIND\\CEREBRO');
+    const s = store.update({ workspace: 'C:\\x\\y', recentWorkspaces: ['C:\\z', 'c:\\X\\Y', 'rel', 'C:\\z'] });
+    expect(s.workspace).toBe('C:\\x\\y');
+    expect(s.recentWorkspaces).toEqual(['C:\\x\\y', 'C:\\z']);
+    // una configuración antigua sin la lista muestra al menos la carpeta actual
+    expect(store.update({ recentWorkspaces: undefined as never }).recentWorkspaces).toEqual(['C:\\x\\y']);
+  });
   it('sanea configuración peligrosa', () => {
     const s = new ConfigStore().update({ maxAttempts: 999, claudeModel: 'x; rm -rf /', extraWritablePaths: ['..\\fuera', 'C:\\abs', 'ok'] });
     expect(s.maxAttempts).toBe(10);

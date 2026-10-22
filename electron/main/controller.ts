@@ -10,7 +10,7 @@ import { guardHookPath } from '../security/policy';
 import { ConfigStore } from '../services/config';
 import { gitInfo } from '../services/git';
 import { HistoryStore } from '../services/history';
-import { subDir } from '../services/paths';
+import { dataDir, isInside, subDir } from '../services/paths';
 import { PidRegistry } from '../services/process-runner';
 import { runTests } from '../services/test-runner';
 import { resolveExecutable } from '../services/executables';
@@ -123,6 +123,21 @@ export class AppController {
     const s = this.config.update(patch);
     this.changed();
     return s;
+  }
+
+  /** Cambia la carpeta de trabajo. Las tareas siguientes se ejecutan sobre ella. */
+  setWorkspace(dir: string): { ok: boolean; error?: string } {
+    if (this.orchestrator.busy) return { ok: false, error: 'No se puede cambiar la carpeta de trabajo con una tarea en curso.' };
+    const abs = path.resolve(dir);
+    if (!path.isAbsolute(dir) || !fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return { ok: false, error: `No existe la carpeta ${dir}.` };
+    if (isInside(dataDir(), abs) || isInside(abs, dataDir())) return { ok: false, error: 'La carpeta de trabajo no puede contener los datos internos de la aplicación.' };
+    if (path.parse(abs).root === abs) return { ok: false, error: 'Elige una carpeta concreta, no la raíz de una unidad.' };
+    const s = this.config.get();
+    const recent = [abs, ...s.recentWorkspaces.filter((p) => p.toLowerCase() !== abs.toLowerCase())];
+    this.config.update({ workspace: abs, recentWorkspaces: recent });
+    this.workspace = { ...checkWorkspace(this.config.get()), tools: this.workspace?.tools ?? [] };
+    this.changed();
+    return { ok: true };
   }
 
   snapshot(): AppSnapshot {

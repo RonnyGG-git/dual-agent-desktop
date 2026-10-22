@@ -251,11 +251,11 @@ export class Orchestrator extends EventEmitter {
     const review = parsed.data;
     review.project_path = review.project_path.replace(/\\/g, '/').replace(/^\.\/(?=.)/, '').replace(/\/$/, '') || '.';
     const abs = path.resolve(ws, review.project_path);
-    if (!isInside(ws, abs)) throw new StageError('policy', `La ruta de proyecto "${review.project_path}" está fuera del directorio de trabajo.`, 'claude');
+    if (!isInside(ws, abs)) throw new StageError('policy', `La ruta de proyecto "${review.project_path}" está fuera del directorio de trabajo (${ws}). Cambia la carpeta de trabajo desde la ruta del encabezado a una que contenga el proyecto.`, 'claude');
     if (/(^|\/)\.(git|obsidian)(\/|$)/i.test(review.project_path)) throw new StageError('policy', 'La ruta de proyecto no puede estar dentro de .git ni .obsidian.', 'claude');
     if (review.project_exists && !fs.existsSync(abs)) throw new StageError('invalid_output', `Claude indicó un proyecto existente que no existe: ${review.project_path}`, 'claude');
     if (!review.project_exists && fs.existsSync(abs) && fs.statSync(abs).isFile()) throw new StageError('policy', `La ruta propuesta para el proyecto nuevo es un archivo existente: ${review.project_path}`, 'claude');
-    if (review.project_path === '.') this.log('warn', 'review', 'orchestrator', 'El alcance es la raíz completa del workspace: Claude podrá escribir en cualquier ruta del vault (excepto .git y .obsidian).');
+    if (review.project_path === '.') this.log('warn', 'review', 'orchestrator', 'El alcance es la raíz completa del workspace: Claude podrá escribir en cualquier ruta de la carpeta de trabajo (excepto .git y .obsidian).');
     return review;
   }
 
@@ -451,7 +451,8 @@ export class Orchestrator extends EventEmitter {
     const roots = [path.resolve(ws, task.projectPath!)];
     for (const extra of s.extraWritablePaths) {
       const abs = path.resolve(ws, extra);
-      if (isInside(ws, abs) && !roots.some((r) => isInside(r, abs))) roots.push(abs);
+      // Solo si existe en esta carpeta de trabajo (p. ej. "01 Diario" no se crea en otros proyectos).
+      if (isInside(ws, abs) && fs.existsSync(abs) && !roots.some((r) => isInside(r, abs))) roots.push(abs);
     }
     return roots;
   }

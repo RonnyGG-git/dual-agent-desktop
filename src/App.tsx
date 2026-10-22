@@ -1,4 +1,4 @@
-import { FolderGit2, History, RefreshCw, Settings as SettingsIcon, X } from 'lucide-react';
+import { History, RefreshCw, Settings as SettingsIcon, X } from 'lucide-react';
 import { useState } from 'react';
 import type { LightState, StageId } from '../shared/types';
 import { ActivityFeed } from './components/ActivityFeed';
@@ -7,6 +7,7 @@ import { HistoryDrawer } from './components/HistoryDrawer';
 import { InstructionBar } from './components/InstructionBar';
 import { SettingsDialog } from './components/SettingsDialog';
 import { StageLights } from './components/StageLights';
+import { WorkspaceMenu } from './components/WorkspaceMenu';
 import { useDualAgent } from './hooks/useDualAgent';
 
 const IDLE_STAGES: Record<StageId, LightState> = { review: 'pending', develop: 'pending', test: 'pending', document: 'pending', done: 'pending' };
@@ -32,20 +33,7 @@ export default function App() {
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-claude to-opencode text-[11px] font-bold text-coal-950">DA</span>
           <span className="font-semibold tracking-wide">Dual Agent Desktop</span>
         </div>
-        <button
-          onClick={() => void window.dad.openPath('workspace')}
-          title={ws ? `${ws.path}\nGit: ${ws.isGitRepo ? `sí (${ws.gitBranch})` : 'no'} · cambios previos del usuario: ${ws.preexistingChanges}` : ''}
-          className={`ml-3 flex min-w-0 items-center gap-1.5 rounded-lg px-2.5 py-1 ring-1 transition hover:bg-coal-800 ${wsOk ? 'text-ink-300 ring-white/[0.06]' : 'text-red-300 ring-red-400/30'}`}
-          data-testid="workspace"
-        >
-          <FolderGit2 size={14} />
-          <span className="truncate font-mono text-[12px]">{ws?.path ?? '…'}</span>
-          {ws && (
-            <span className="text-ink-500">
-              · {!ws.exists ? 'no existe' : !wsOk ? 'sin permisos' : ws.isGitRepo ? `git ${ws.gitBranch}` : 'sin git'}
-            </span>
-          )}
-        </button>
+        <WorkspaceMenu ws={ws} recent={snapshot.settings.recentWorkspaces} busy={snapshot.busy} onError={setError} />
         <div className="ml-auto flex items-center gap-1">
           <IconButton
             label="Volver a comprobar herramientas"

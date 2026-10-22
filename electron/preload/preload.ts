@@ -11,6 +11,8 @@ const api: DadApi = {
   getTask: (id) => ipcRenderer.invoke('dad:getTask', id),
   updateSettings: (patch) => ipcRenderer.invoke('dad:updateSettings', patch),
   openPath: (target) => ipcRenderer.invoke('dad:openPath', target),
+  chooseWorkspace: () => ipcRenderer.invoke('dad:chooseWorkspace'),
+  setWorkspace: (dir) => ipcRenderer.invoke('dad:setWorkspace', dir),
   onSnapshot: (cb) => {
     const listener = (_e: IpcRendererEvent, s: AppSnapshot) => cb(s);
     ipcRenderer.on('dad:snapshot', listener);

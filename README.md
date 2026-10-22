@@ -7,7 +7,7 @@ Aplicación de escritorio para Windows que coordina dos agentes de IA sobre el m
 
 Un orquestador interno ejecuta las CLI reales instaladas, valida cada mensaje JSON, corre las pruebas del proyecto, devuelve los rechazos al desarrollador (máx. 3 intentos) y muestra el progreso en cinco focos LED: **REVISANDO · DESARROLLANDO · PROBANDO · DOCUMENTANDO · FINALIZADO**.
 
-Directorio de trabajo fijo: `C:\RONNY\MIND\CEREBRO`. Los datos internos de la app se guardan en `%LOCALAPPDATA%\DualAgentDesktop`.
+Carpeta de trabajo: `C:\RONNY\MIND\CEREBRO` por defecto; se puede cambiar a cualquier otra carpeta desde el encabezado. Los datos internos de la app se guardan en `%LOCALAPPDATA%\DualAgentDesktop`.
 
 Arquitectura, flujo y modelo de seguridad: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
@@ -31,14 +31,16 @@ La app encuentra `claude.exe` y `opencode.exe` aunque se abra desde el escritori
 
 ## Uso
 
-1. Abre la app. El encabezado muestra CEREBRO y la rama git. Cada panel muestra la versión, la autenticación y el modelo de su agente.
+1. Abre la app. El encabezado muestra la carpeta de trabajo y su rama git. Haz clic en la ruta para cambiarla: carpetas recientes, **Elegir otra carpeta…** (selector de Windows) o abrirla en el explorador. No se puede cambiar con una tarea en curso. Cada panel muestra la versión, la autenticación y el modelo de su agente.
 2. Escribe la instrucción y pulsa **Ctrl + Enter** (Enter solo agrega un salto de línea).
 3. Sigue el progreso en los focos, en los paneles de los agentes y en la actividad reciente.
 4. **Cancelar** detiene ambos agentes y mata sus procesos.
 5. **Historial** (icono de reloj) muestra cada ejecución: resumen, pruebas, reportes de QA y eventos.
 6. **Configuración** (engranaje): número máximo de intentos, exigir suite de pruebas, modelos, rutas escribibles adicionales y tiempos máximos por etapa.
 
-Consejo: menciona el proyecto en la instrucción ("En 02 Proyectos/SmartBite …"). Claude lo identifica en la revisión y solo podrá escribir dentro de esa carpeta y de `01 Diario` (configurable).
+Consejo: menciona el proyecto en la instrucción ("En 02 Proyectos/SmartBite …"). Claude lo identifica en la revisión y solo podrá escribir dentro de esa carpeta y de las rutas extra (`01 Diario` por defecto; se ignoran si no existen en la carpeta de trabajo).
+
+El proyecto debe estar **dentro** de la carpeta de trabajo. Si está en otro sitio (por ejemplo `C:\RONNY\MIND\PROYECTOS\smartbite`), cambia la carpeta de trabajo a esa carpeta o a una que la contenga; si no, la tarea se detiene en REVISANDO con el error de política "fuera del directorio de trabajo".
 
 ## Desarrollo
 
@@ -59,9 +61,10 @@ node scripts/make-icon.cjs   # regenera resources/icon.png
 |---|---|
 | `tests/unit/orchestrator.test.ts`: flujo completo y secuencia de focos, rechazo → vuelta a desarrollo, límite de intentos, QA "approved" invalidado por pruebas fallidas, JSON de QA inválido, cancelación, borrado de archivo preexistente, cambios previos del usuario, ruta fuera del workspace, una tarea a la vez, error de autenticación, etapa de documentación | 17/17 ✔ |
 | `tests/unit/security.test.ts`: hook guardián ejecutado como proceso real (alcance, `.git`/`.obsidian`, solo lectura, modo docs, bloqueo de escritura, 13 comandos destructivos, falla cerrado) y `WriteLock` | 28/28 ✔ |
-| `tests/unit/services.test.ts`: git en repositorio real, detección/ejecución de pruebas, timeout, cancelación con muerte del árbol de procesos, ausencia de shell, extracción de JSON, clasificación de errores, ocultamiento de tokens, persistencia | 18/18 ✔ |
+| `tests/unit/services.test.ts`: git en repositorio real, detección/ejecución de pruebas, timeout, cancelación con muerte del árbol de procesos, ausencia de shell, extracción de JSON, clasificación de errores, ocultamiento de tokens, persistencia | 19/19 ✔ |
 | `tests/integration/adapters.test.ts`: adaptadores reales contra CLIs simuladas con el protocolo NDJSON observado | 12/12 ✔ |
-| `tests/ui/app.test.tsx`: barra, paneles, focos, Ctrl+Enter, estados en tiempo real, cancelar, errores | 6/6 ✔ |
+| `tests/ui/app.test.tsx`: barra, paneles, focos, Ctrl+Enter, estados en tiempo real, cancelar, errores, cambio de carpeta de trabajo | 7/7 ✔ |
+| `tests/unit/workspace.test.ts`: cambio de carpeta de trabajo (persistencia, recientes; rechaza rutas inexistentes, relativas, raíz de unidad y datos de la app) | 2/2 ✔ |
 | `tests/integration/real-cli.test.ts` (**CLI reales**): detección y autenticación; OpenCode QA no puede escribir ni borrar; ciclo completo real en un sandbox (Claude 2.1.306 + OpenCode 1.19.0): proyecto `calc` identificado, 9 criterios, `npm test` en verde, QA 9/9, solo cambió `calc/`; revisión de solo lectura sobre CEREBRO sin ningún cambio | 4/4 ✔ |
 | Prueba de humo de la app Electron real y del `.exe` empaquetado (`DAD_SCREENSHOT`): CEREBRO, Git, Claude autenticado y OpenCode detectados | ✔ |
 

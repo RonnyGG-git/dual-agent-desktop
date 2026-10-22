@@ -26,7 +26,7 @@ const baseSnap = (): AppSnapshot => ({
   workspace: { path: 'C:\\RONNY\\MIND\\CEREBRO', exists: true, readable: true, writable: true, isGitRepo: true, gitBranch: 'main', preexistingChanges: 3, tools: [], checkedAt: 0 },
   agents: { claude: agent('claude'), opencode: agent('opencode') },
   task: null,
-  settings: { workspace: 'C:\\RONNY\\MIND\\CEREBRO', maxAttempts: 3, requireTests: false, claudeModel: '', opencodeModel: '', extraWritablePaths: [], timeouts: { reviewMin: 1, developMin: 1, testMin: 1, qaMin: 1, documentMin: 1 } },
+  settings: { workspace: 'C:\\RONNY\\MIND\\CEREBRO', recentWorkspaces: ['C:\\RONNY\\MIND\\CEREBRO', 'C:\\RONNY\\MIND\\PROYECTOS'], maxAttempts: 3, requireTests: false, claudeModel: '', opencodeModel: '', extraWritablePaths: [], timeouts: { reviewMin: 1, developMin: 1, testMin: 1, qaMin: 1, documentMin: 1 } },
   busy: false,
 });
 const task = (stages: TaskRecord['stages']): TaskRecord => ({
@@ -48,6 +48,8 @@ beforeEach(() => {
     getTask: vi.fn(async () => null),
     updateSettings: vi.fn(async (p) => ({ ...baseSnap().settings, ...p })),
     openPath: vi.fn(async () => {}),
+    chooseWorkspace: vi.fn(async () => null),
+    setWorkspace: vi.fn(async () => ({ ok: false, error: 'No existe la carpeta C:\\RONNY\\MIND\\PROYECTOS.' })),
     onSnapshot: vi.fn((cb) => {
       push = cb;
       return () => {};
@@ -132,5 +134,17 @@ describe('Interfaz principal', () => {
     await user.type(await screen.findByPlaceholderText(/agentes/), 'x');
     expect(screen.getByRole('button', { name: 'Enviar instrucción' })).toBeDisabled();
     expect(screen.getByTestId('status-opencode')).toHaveTextContent('Sin conexión');
+  });
+
+  it('cambia la carpeta de trabajo desde el encabezado (recientes y selector)', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByTestId('workspace'));
+    await user.click(screen.getByRole('menuitem', { name: 'C:\\RONNY\\MIND\\PROYECTOS' }));
+    expect(api.setWorkspace).toHaveBeenCalledWith('C:\\RONNY\\MIND\\PROYECTOS');
+    expect(await screen.findByRole('alert')).toHaveTextContent('No existe la carpeta');
+    await user.click(screen.getByTestId('workspace'));
+    await user.click(screen.getByRole('menuitem', { name: /Elegir otra carpeta/ }));
+    expect(api.chooseWorkspace).toHaveBeenCalled();
   });
 });

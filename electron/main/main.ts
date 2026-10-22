@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Settings } from '../../shared/types';
@@ -98,6 +98,21 @@ function registerIpc(c: AppController, getWin: () => BrowserWindow | null) {
     const allowed: (keyof Settings)[] = ['maxAttempts', 'requireTests', 'claudeModel', 'opencodeModel', 'extraWritablePaths', 'timeouts'];
     const clean = Object.fromEntries(Object.entries(patch).filter(([k]) => allowed.includes(k as keyof Settings)));
     return c.updateSettings(clean as Partial<Settings>);
+  });
+  // La ruta nueva solo puede venir del selector nativo (lo elige el usuario) o de la lista de recientes.
+  ipcMain.handle('dad:chooseWorkspace', async (e) => {
+    guard(e);
+    const win = getWin();
+    const opts: Electron.OpenDialogOptions = { title: 'Carpeta de trabajo', defaultPath: c.config.get().workspace, properties: ['openDirectory'] };
+    const r = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts);
+    if (r.canceled || !r.filePaths[0]) return null;
+    return c.setWorkspace(r.filePaths[0]);
+  });
+  ipcMain.handle('dad:setWorkspace', (e, dir: unknown) => {
+    guard(e);
+    const recent = c.config.get().recentWorkspaces;
+    if (typeof dir !== 'string' || !recent.some((p) => p.toLowerCase() === dir.toLowerCase())) return { ok: false, error: 'Carpeta no permitida.' };
+    return c.setWorkspace(dir);
   });
   ipcMain.handle('dad:openPath', (e, target: unknown) => {
     guard(e);

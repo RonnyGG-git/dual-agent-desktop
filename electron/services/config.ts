@@ -4,8 +4,11 @@ import { dataDir, readJson, writeJsonAtomic } from './paths';
 
 export const DEFAULT_WORKSPACE = 'C:\\RONNY\\MIND\\CEREBRO';
 
+const MAX_RECENT = 8;
+
 export const DEFAULT_SETTINGS: Settings = {
   workspace: DEFAULT_WORKSPACE,
+  recentWorkspaces: [DEFAULT_WORKSPACE],
   maxAttempts: 3,
   requireTests: false,
   claudeModel: '',
@@ -44,9 +47,17 @@ function sanitize(s: Settings): Settings {
     const n = Math.round(Number(v));
     return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : def;
   };
+  // Siempre una ruta absoluta; que exista se comprueba al elegirla y en cada arranque.
+  const workspace = typeof s.workspace === 'string' && path.isAbsolute(s.workspace) ? path.resolve(s.workspace) : DEFAULT_WORKSPACE;
   return {
     ...s,
-    workspace: String(s.workspace || DEFAULT_WORKSPACE),
+    workspace,
+    // La carpeta actual siempre figura en recientes (configuraciones guardadas antes de existir la lista).
+    recentWorkspaces: [workspace, ...(Array.isArray(s.recentWorkspaces) ? s.recentWorkspaces : [])]
+      .filter((p): p is string => typeof p === 'string' && path.isAbsolute(p))
+      .map((p) => path.resolve(p))
+      .filter((p, i, all) => all.findIndex((q) => q.toLowerCase() === p.toLowerCase()) === i)
+      .slice(0, MAX_RECENT),
     maxAttempts: clampInt(s.maxAttempts, 1, 10, 3),
     requireTests: Boolean(s.requireTests),
     // Los modelos se pasan como argumento a las CLI: solo caracteres de identificador.

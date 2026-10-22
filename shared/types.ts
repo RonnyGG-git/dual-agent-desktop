@@ -156,6 +156,8 @@ export interface TaskRecord {
 
 export interface Settings {
   workspace: string;
+  /** Carpetas de trabajo usadas antes (la más reciente primero), para cambiar rápido. */
+  recentWorkspaces: string[];
   maxAttempts: number;
   requireTests: boolean;
   claudeModel: string;
@@ -192,5 +194,9 @@ export interface DadApi {
   getTask(id: string): Promise<TaskRecord | null>;
   updateSettings(patch: Partial<Settings>): Promise<Settings>;
   openPath(target: 'workspace' | 'data' | 'backups'): Promise<void>;
+  /** Abre el selector de carpetas nativo; null si el usuario cancela. */
+  chooseWorkspace(): Promise<{ ok: boolean; error?: string } | null>;
+  /** Cambia a una carpeta de la lista de recientes. */
+  setWorkspace(path: string): Promise<{ ok: boolean; error?: string }>;
   onSnapshot(cb: (s: AppSnapshot) => void): () => void;
 }

@@ -83,6 +83,14 @@ Los focos cambian **solo** cuando el orquestador llama a `setStage`, tras evento
 Copias de seguridad: antes de que Claude edite un archivo existente, el hook lo copia en
 `%LOCALAPPDATA%\DualAgentDesktop\backups\<id-tarea>\<ruta relativa>` (solo la primera versión).
 
+## Carpeta de trabajo
+
+`Settings.workspace` (por defecto `C:\RONNY\MIND\CEREBRO`) y `recentWorkspaces` (máx. 8). Se cambia con
+`dad:chooseWorkspace` (selector nativo en el proceso principal) o `dad:setWorkspace` (solo rutas de la lista de
+recientes: el renderer no puede proponer rutas arbitrarias). `AppController.setWorkspace` exige ruta absoluta y
+existente, rechaza la raíz de una unidad y cualquier carpeta que contenga o esté dentro de los datos de la app, y
+no permite el cambio con una tarea en curso. El proyecto que identifica Claude debe quedar dentro de esta carpeta.
+
 ## Datos de la aplicación
 
 `%LOCALAPPDATA%\DualAgentDesktop\`
